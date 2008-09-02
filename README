@@ -1,0 +1,19 @@
+2008-09-02:  Code for Intro to Erlang concurrency talk to be given at BarCamp Tampa unconference
+(http://barcamptampabay.com/) on Oct. 11, 2008 by Barry Ezell.  I am new to Erlang and this
+project is as much a learning experience as a teaching experience.  Erlang programmers
+are welcomed to comment on or contribute to this code.  I can be reached at barrye _@t_ gmail.com
+
+The goal of the application is to decrease the time necessary to perform brute-force decryption
+of MD5-hashed passwords by using concurrent Erlang processes.  The code is for demonstration
+only and is not fit for production.  Also, malicious hackers are encouraged to die a painful death.
+Passwords must only be lowercase characters (no numbers) and the decrypt function must 
+be told how long the password is.  To encrypt and decrypt the string "hello" in the Erlang shell, 
+execute the following:
+
+>c(pwd).
+>X = pwd:encrypt("hello").
+>pwd:decrypt(X,5,2).
+
+The arguments to decrypt are (encrypted password, password length, number of processes to spawn).
+In its current state, the program is concurrent but not distributed so the number of processes
+to spawn will depend on the number of CPUs/cores available on the test system.
