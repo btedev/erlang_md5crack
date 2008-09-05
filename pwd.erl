@@ -69,22 +69,20 @@ partition_alphabet(L, Partitions, Len, Incr, CurChar) ->
 %% Args:   Server Pid, encrypted hash, starting character array, ending character array, length of plaintext
 %% Returns: notifies server of success or failure
 %%----------------------------------------------------------------------
-analyze(Server, Crypted, Max, Max, Len) ->	
-	Test = erlang:md5(Max),
-	case Test =:= Crypted of 
-		true ->
-			Server ! {found, Max};		
-		false -> 
-			Server ! {notfound}
-	end;
-analyze(Server, Crypted, Cur, Max, Len) ->		
-	Test = erlang:md5(Cur),
-	case Test =:= Crypted of
-		true ->
-			Server ! {found, Cur};		
-		false -> 
-			analyze(Server, Crypted, next(Cur), Max, Len)
-	end.
+analyze(Server, Crypted, Max, Max, Len) ->
+   case erlang:md5(Max) of
+       Crypted ->
+           Server ! {found, Max};
+       _ ->
+           Server ! notfound
+   end;
+analyze(Server, Crypted, Cur, Max, Len) ->
+   case erlang:md5(Cur) of
+       Crypted ->
+           Server ! {found, Cur};
+       _ ->
+           analyze(Server, Crypted, next(Cur), Max, Len)
+   end.
 
 %%----------------------------------------------------------------------
 %% Function: chr_array/3
