@@ -1,5 +1,5 @@
 %%%--------------------------------------------------------------------- 
-%%% Description module pwd
+%%% module pwd
 %%%--------------------------------------------------------------------- 
 %%% Decrypts md5-hashed strings of known length.  This is demonstration
 %%% code for an intro talk on Erlang concurrency.  
@@ -25,42 +25,20 @@ encrypt(Plain) ->
 %% Returns: plaintext
 %%----------------------------------------------------------------------
 decrypt(Crypted, Len, Processes) ->
-	CharArrays = partition_alphabet(Processes, Len),
-	ServerPid = spawn(fun() -> loop() end),		
-	lists:foreach(fun({Min,Max}) -> spawn(fun() -> analyze(ServerPid, Crypted, Min, Max, Len) end) end, CharArrays).
+	CharPartitions = partition_alphabet(Len, Processes),
+	S = self(),	
+	lists:foreach(fun({Min,Max}) -> spawn(fun() -> analyze(S, Crypted, Min, Max, Len) end) end, CharPartitions),
+	loop().
 	
 loop() ->
-	io:format("server loop running~n"),
  	receive
 		{found, Password} ->
-			io:format("password decrypted: ~p~n",[Password]);
+			io:format("password decrypted: ~p~n",[Password]),
+			Password;
 		_X ->
 			io:format("received message ~p~n",[_X]),
 			loop()			
 	 end.
-
-%%----------------------------------------------------------------------
-%% Function: partition_alphabet/2
-%% Purpose: partition lowercase alphabet according to number of process to spawn
-%% Args:   Number of processes, length of plaintext
-%% Returns: array of 2-tuples of form {Starting character array, Ending character array}
-%%----------------------------------------------------------------------
-partition_alphabet(Processes, Len) ->
-	%get average chars per process (may not divide evenly, note using integer division)
-	Incr = 26 div Processes,  
-	partition_alphabet([], Processes, Len, Incr, $a).
-	
-partition_alphabet(L, 0, Len, Incr, CurChar) ->
-	L;
-partition_alphabet(L, 1, Len, Incr, CurChar) ->
-	%final partiton is a special case.  In circumstances where alphabet / processes has a remainder,
-	%the final partition will receive all remaining characters.  For instance, where processes = 4,
-	%final partition will only receive 5 chars (v-z) instead of 7 like the others.
-	Arr = {chr_array(CurChar, Len, min) , chr_array($z, Len, max)},
-	partition_alphabet([Arr|L], 0, Len, Incr, 0);
-partition_alphabet(L, Partitions, Len, Incr, CurChar) ->
-	Arr = {chr_array(CurChar, Len, min) , chr_array(CurChar+Incr, Len, max)},
-	partition_alphabet([Arr|L], Partitions-1, Len, Incr, CurChar+Incr+1).
 
 %%----------------------------------------------------------------------
 %% Function: analyze/5
@@ -81,26 +59,48 @@ analyze(Server, Crypted, Cur, Max, Len) ->
        Crypted ->
            Server ! {found, Cur};
        _ ->
+			io:format("analyzing ~p~n",[Cur]),
            analyze(Server, Crypted, next(Cur), Max, Len)
    end.
+	
+%%----------------------------------------------------------------------
+%% Function: partition_alphabet/2
+%% Purpose: partition lowercase alphabet according to number of process to spawn
+%% Args:   Length of plaintext, Number of processes
+%% Returns: array of 2-tuples of form {min,max} where each of min and max are char arrays
+%%----------------------------------------------------------------------
+partition_alphabet(Len, Processes) ->
+	TotalStrings = round(math:pow(26, Len)),
+	StringsPerProc = round(TotalStrings / Processes), %average
+	partition_alphabet(Processes, 0, StringsPerProc, TotalStrings, []).
+
+partition_alphabet(1, Last, StringsPerProcess, TotalStrings, L) ->
+	%final partition always receives Last to TotalStrings because
+	%TotalStrings / Processes in partition_alphabet/2 above may have had a remainder
+	Min = Last + 1,
+	MinMax = {chr_array(Min), chr_array(TotalStrings)},
+	[MinMax|L];	
+partition_alphabet(ProcsLeft, Last, StringsPerProcess, TotalStrings, L) ->
+	Min = Last + 1,
+	Max = Min + StringsPerProcess - 1,
+	MinMax = {chr_array(Min), chr_array(Max)},
+	partition_alphabet(ProcsLeft - 1, Max, StringsPerProcess, TotalStrings, [MinMax|L]).	
 
 %%----------------------------------------------------------------------
-%% Function: chr_array/3
-%% Purpose: create an array of characters of length N that will represent either a minimum (starting)
-%% or maxiumum (ending) character array for analysis.  
-%% minimum starts with character C followed by N-1 "a" characters. For C=100, N=3, returns "daa"
-%% maximum starts with character C followed by N-1 "z" characters. For C=121, N=3, returns "yzz"
-%% Args:   first character in array, length of character array, min/max atom specifying type of array
-%% Returns: character array of length N
-%%----------------------------------------------------------------------
-chr_array(C, N, MinMax) ->
-	chr_array([], C, N, MinMax).
-chr_array(L, C, 1, MinMax) ->
-	[C|L];			%add character C as final item since it is appended to head of list
-chr_array(L, C, N, min) ->
-	chr_array([$a|L], C, N-1, min);
-chr_array(L, C, N, max) ->
-	chr_array([$z|L], C, N-1, max).
+%% Function: chr_array/1
+%% Purpose: given a base-10 number, use base-26 math to return the corresponding character array
+%% Port of Java example of hexavigesimal math from http://en.wikipedia.org/wiki/Hexavigesimal
+%% Counting starts at 1, not 0.  96 is magic number added to get ASCII value.  Thus 1 returns [97] or "a"
+%% Args:  base-10 number
+%% Returns:  ASCII character array representing conversion from base-10 to base-26
+chr_array(I) ->
+	chr_array(I,[]).
+	
+chr_array(I,L) when I > 26 ->
+	R = I rem 26,
+	chr_array(I div 26, [R+96|L]);
+chr_array(I,L) ->
+	[I+96|L].
 	
 %%----------------------------------------------------------------------
 %% Function: next/1
@@ -119,3 +119,4 @@ next([H|T], L, true) ->
 	next(T, [H+1|L], false);
 next([H|T], L, false) ->
 	next(T, [H|L], false).
+
