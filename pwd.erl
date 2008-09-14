@@ -27,7 +27,10 @@ encrypt(Plain) ->
 decrypt(Crypted, Len, Processes) ->
 	CharPartitions = partition_alphabet(Len, Processes),
 	S = self(),	
-	lists:foreach(fun({Min,Max}) -> spawn(fun() -> analyze(S, Crypted, Min, Max, Len) end) end, CharPartitions),
+	lists:foreach(fun({Min,Max}) -> 
+		spawn(fun() -> 
+			analyze(S, Crypted, Min, Max, Len) end) 
+		end, CharPartitions),
 	loop().
 	
 loop() ->
@@ -59,48 +62,68 @@ analyze(Server, Crypted, Cur, Max, Len) ->
        Crypted ->
            Server ! {found, Cur};
        _ ->
-			io:format("analyzing ~p~n",[Cur]),
            analyze(Server, Crypted, next(Cur), Max, Len)
    end.
 	
 %%----------------------------------------------------------------------
 %% Function: partition_alphabet/2
-%% Purpose: partition lowercase alphabet according to number of process to spawn
+%% Purpose: partition lowercase alphabet according to number of process to spawn.
+%% Note that the number of strings to analyze will be 26 ^ Len.
+%% When calculating the first item of the bounds, all possible combinations
+%% less than that length will be added, for instance for length 4, 
+%% First = (26^3) + (26^2) + 26 = 18278. 
 %% Args:   Length of plaintext, Number of processes
 %% Returns: array of 2-tuples of form {min,max} where each of min and max are char arrays
 %%----------------------------------------------------------------------
 partition_alphabet(Len, Processes) ->
 	TotalStrings = round(math:pow(26, Len)),
-	StringsPerProc = round(TotalStrings / Processes), %average
-	partition_alphabet(Processes, 0, StringsPerProc, TotalStrings, []).
+	First = first_int(Len),	
+	Last = First + TotalStrings,
+	StringsPerProc = round((TotalStrings - First) / Processes), 
+	partition_alphabet(Processes, First - 1, Last, StringsPerProc, []).
 
-partition_alphabet(1, Last, StringsPerProcess, TotalStrings, L) ->
+partition_alphabet(1, Cur, Last, StringsPerProc, L) ->
 	%final partition always receives Last to TotalStrings because
 	%TotalStrings / Processes in partition_alphabet/2 above may have had a remainder
-	Min = Last + 1,
-	MinMax = {chr_array(Min), chr_array(TotalStrings)},
+	Min = Cur + 1,
+	MinMax = {chr_array(Min), chr_array(Last - 1)},
 	[MinMax|L];	
-partition_alphabet(ProcsLeft, Last, StringsPerProcess, TotalStrings, L) ->
-	Min = Last + 1,
-	Max = Min + StringsPerProcess - 1,
+partition_alphabet(ProcsLeft, Cur, Last, StringsPerProc, L) ->
+	Min = Cur + 1,
+	Max = Min + StringsPerProc - 1,
 	MinMax = {chr_array(Min), chr_array(Max)},
-	partition_alphabet(ProcsLeft - 1, Max, StringsPerProcess, TotalStrings, [MinMax|L]).	
+	partition_alphabet(ProcsLeft - 1, Max, Last, StringsPerProc, [MinMax|L]).	
+
+%%----------------------------------------------------------------------
+%% Function: first_int/1
+%% Purpose: given a string length, return the base-10 number that represents the first string
+%% of having length. For instance, Len 1 returns 0, Len 2 returns 26, etc...
+%% Args:  string length
+%% Returns:  integer
+first_int(Len) when Len > 0 ->
+	first_int(Len-1, 0).
+
+first_int(0, Acc) ->
+	Acc;	
+first_int(Len, Acc) ->
+	first_int(Len - 1, Acc + round(math:pow(26, Len))).
 
 %%----------------------------------------------------------------------
 %% Function: chr_array/1
 %% Purpose: given a base-10 number, use base-26 math to return the corresponding character array
-%% Port of Java example of hexavigesimal math from http://en.wikipedia.org/wiki/Hexavigesimal
-%% Counting starts at 1, not 0.  96 is magic number added to get ASCII value.  Thus 1 returns [97] or "a"
+%% Based on Java example of hexavigesimal math from http://en.wikipedia.org/wiki/Hexavigesimal
+%% $a represents ASCII 97.  Thus 0 returns [97] or "a".
 %% Args:  base-10 number
 %% Returns:  ASCII character array representing conversion from base-10 to base-26
 chr_array(I) ->
-	chr_array(I,[]).
+	chr_array(I, []).
 	
-chr_array(I,L) when I > 26 ->
+chr_array(I, L) when I > 25 ->
 	R = I rem 26,
-	chr_array(I div 26, [R+96|L]);
-chr_array(I,L) ->
-	[I+96|L].
+	D = I div 26,
+	chr_array(D - 1, [R+$a|L]);	
+chr_array(I, L) ->
+	[I + $a|L].
 	
 %%----------------------------------------------------------------------
 %% Function: next/1
