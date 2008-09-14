@@ -26,21 +26,32 @@ encrypt(Plain) ->
 %%----------------------------------------------------------------------
 decrypt(Crypted, Len, Processes) ->
 	CharPartitions = partition_alphabet(Len, Processes),
-	S = self(),	
+	Server = self(),	
+	StartTime = now(),
 	lists:foreach(fun({Min,Max}) -> 
 		spawn(fun() -> 
-			analyze(S, Crypted, Min, Max, Len) end) 
+			analyze(Server, Crypted, Min, Max, Len) end) 
 		end, CharPartitions),
-	loop().
-	
-loop() ->
- 	receive
-		{found, Password} ->
-			io:format("password decrypted: ~p~n",[Password]),
-			Password;
-		_X ->
-			io:format("received message ~p~n",[_X]),
-			loop()			
+	loop(Processes, StartTime, notfound).
+
+%%----------------------------------------------------------------------
+%% Function: loop/3
+%% Purpose: Server loop that listens for results of clients processes which perform password analysis.
+%% Captures time required for successful decryption but doesn't return until all processes have reported
+%% either success or failure.
+%% Args:  Number of process, start time, return message 
+%% Returns: Return value of either notfound or {found,password,elapsed_time}
+%%----------------------------------------------------------------------
+loop(0, _Start, Ret) ->
+	Ret;
+loop(Processes, Start, Ret) ->
+ 	receive		
+		{found, Password} ->			
+			Elapsed = timer:now_diff(now(), Start) / 1000 / 1000,
+			loop(Processes-1, Start, {found,Password,Elapsed});
+		notfound ->
+			io:format("Processes remaining: ~p~n",[Processes]),
+			loop(Processes-1, Start, Ret)			
 	 end.
 
 %%----------------------------------------------------------------------

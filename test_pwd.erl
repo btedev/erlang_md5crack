@@ -51,5 +51,9 @@ encrypt_test() ->
 	?assertEqual(<<73,246,138,92,132,147,236,44,11,244,137,130,28,33,252,59>>, pwd:encrypt("hi")).
 
 decrypt_test() ->
-	?assertEqual("hi", pwd:decrypt(<<73,246,138,92,132,147,236,44,11,244,137,130,28,33,252,59>>, 2, 2)).
+	Bin = <<73,246,138,92,132,147,236,44,11,244,137,130,28,33,252,59>>,
+	{found,Pass,_} = pwd:decrypt(Bin,2,2), 
+	?assertEqual("hi",Pass),
+	BinBad = <<74,246,138,92,132,147,236,44,11,244,137,130,28,33,252,59>>,
+	?assertEqual(notfound, pwd:decrypt(BinBad,2,2)).
 	
