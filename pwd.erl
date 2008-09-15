@@ -107,8 +107,8 @@ partition_alphabet(ProcsLeft, Cur, Last, StringsPerProc, L) ->
 
 %%----------------------------------------------------------------------
 %% Function: first_int/1
-%% Purpose: given a string length, return the base-10 number that represents the first string
-%% of having length. For instance, Len 1 returns 0, Len 2 returns 26, etc...
+%% Purpose: given a string of length Len, return the base-10 number that represents the first string
+%% having that length. For instance, Len 1 returns 0, Len 2 returns 26, etc...
 %% Args:  string length
 %% Returns:  integer
 first_int(Len) when Len > 0 ->
