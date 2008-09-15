@@ -47,7 +47,7 @@ loop(0, _Start, Ret) ->
 loop(Processes, Start, Ret) ->
  	receive		
 		{found, Password} ->			
-			Elapsed = timer:now_diff(now(), Start) / 1000 / 1000,
+			Elapsed = timer:now_diff(now(), Start) / 1000 / 1000,  %seconds
 			loop(Processes-1, Start, {found,Password,Elapsed});
 		notfound ->
 			io:format("Processes remaining: ~p~n",[Processes]),
