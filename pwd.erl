@@ -79,12 +79,12 @@ analyze(Server, Crypted, Cur, Max, Len) ->
 %%----------------------------------------------------------------------
 %% Function: partition_alphabet/2
 %% Purpose: partition lowercase alphabet according to number of process to spawn.
-%% Note that the number of strings to analyze will be 26 ^ Len.
+%% The max number of strings to analyze will be 26 ^ Len.
 %% When calculating the first item of the bounds, all possible combinations
 %% less than that length will be added, for instance for length 4, 
 %% First = (26^3) + (26^2) + 26 = 18278. 
 %% Args:   Length of plaintext, Number of processes
-%% Returns: array of 2-tuples of form {min,max} where each of min and max are char arrays
+%% Returns: array of 2-tuples of form {min,max} where each are char arrays, e.g., {"aa","mm"}
 %%----------------------------------------------------------------------
 partition_alphabet(Len, Processes) ->
 	TotalStrings = round(math:pow(26, Len)),
@@ -94,7 +94,7 @@ partition_alphabet(Len, Processes) ->
 	partition_alphabet(Processes, First - 1, Last, StringsPerProc, []).
 
 partition_alphabet(1, Cur, Last, StringsPerProc, L) ->
-	%final partition always receives Last to TotalStrings because
+	%final partition always receives all remaining arrays because
 	%TotalStrings / Processes in partition_alphabet/2 above may have had a remainder
 	Min = Cur + 1,
 	MinMax = {chr_array(Min), chr_array(Last - 1)},
