@@ -90,7 +90,7 @@ partition_alphabet(Len, Processes) ->
 	TotalStrings = round(math:pow(26, Len)),
 	First = first_int(Len),	
 	Last = First + TotalStrings,
-	StringsPerProc = round((TotalStrings - First) / Processes), 
+	StringsPerProc = round(TotalStrings / Processes), 
 	partition_alphabet(Processes, First - 1, Last, StringsPerProc, []).
 
 partition_alphabet(1, Cur, Last, StringsPerProc, L) ->

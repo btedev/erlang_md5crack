@@ -43,9 +43,9 @@ first_int_test() ->
 	?assertEqual(18278, pwd:first_int(4)).
 	
 partition_test() ->
-	?assertEqual([{"mn","zz"},{"aa","mm"}], pwd:partition_alphabet(2,2)),
+	?assertEqual([{"na","zz"},{"aa","mz"}], pwd:partition_alphabet(2,2)),
  	?assertEqual([{"aaaa","zzzz"}], pwd:partition_alphabet(4,1)),
- 	?assertEqual([{"qqqs","zzzz"},{"iiij","qqqr"},{"aaaa","iiii"}], pwd:partition_alphabet(4,3)).
+ 	?assertEqual([{"riri","zzzz"},{"irir","rirh"},{"aaaa","iriq"}], pwd:partition_alphabet(4,3)).
   		
 encrypt_test() ->
 	?assertEqual(<<73,246,138,92,132,147,236,44,11,244,137,130,28,33,252,59>>, pwd:encrypt("hi")).
