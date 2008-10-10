@@ -30,7 +30,7 @@ decrypt(Crypted, Len, Processes) ->
 	StartTime = now(),
 	lists:foreach(fun({Min,Max}) -> 
 		spawn(fun() -> 
-			analyze(Server, Crypted, Min, Max, Len) end) 
+			analyze(Server, Crypted, Min, Max) end) 
 		end, CharPartitions),
 	loop(Processes, StartTime, notfound).
 
@@ -61,19 +61,19 @@ loop(Processes, Start, Ret) ->
 %% Args:   Server Pid, encrypted hash, starting character array, ending character array, length of plaintext
 %% Returns: notifies server of success or failure
 %%----------------------------------------------------------------------
-analyze(Server, Crypted, Max, Max, Len) ->
+analyze(Server, Crypted, Max, Max) ->
    case erlang:md5(Max) of
        Crypted ->
            Server ! {found, Max};
        _ ->
            Server ! notfound
    end;
-analyze(Server, Crypted, Cur, Max, Len) ->
+analyze(Server, Crypted, Cur, Max) ->
    case erlang:md5(Cur) of
        Crypted ->
            Server ! {found, Cur};
        _ ->
-           analyze(Server, Crypted, next(Cur), Max, Len)
+           analyze(Server, Crypted, next(Cur), Max)
    end.
 	
 %%----------------------------------------------------------------------
@@ -93,7 +93,7 @@ partition_alphabet(Len, Processes) ->
 	StringsPerProc = round(TotalStrings / Processes), 
 	partition_alphabet(Processes, First - 1, Last, StringsPerProc, []).
 
-partition_alphabet(1, Cur, Last, StringsPerProc, L) ->
+partition_alphabet(1, Cur, Last, _StringsPerProc, L) ->
 	%final partition always receives all remaining arrays because
 	%TotalStrings / Processes in partition_alphabet/2 above may have had a remainder
 	Min = Cur + 1,
