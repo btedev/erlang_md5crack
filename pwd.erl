@@ -103,7 +103,7 @@ partition_alphabet(ProcsLeft, Cur, Last, StringsPerProc, L) ->
 	Min = Cur + 1,
 	Max = Min + StringsPerProc - 1,
 	MinMax = {chr_array(Min), chr_array(Max)},
-	partition_alphabet(ProcsLeft - 1, Max, Last, StringsPerProc, [MinMax|L]).	
+	partition_alphabet(ProcsLeft - 1, Max, Last, StringsPerProc, [MinMax|L]).		
 
 %%----------------------------------------------------------------------
 %% Function: first_int/1
