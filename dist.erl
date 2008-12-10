@@ -99,11 +99,17 @@ server_loop(Bots) ->
 			io:format("~p failed to find the password: ~n",[botnick(Bots,From)]),
 			From ! {dist, thanks_for_playing},
 			server_loop(Bots);
+		{From, {print_botlist}} ->
+			io:format("Current bots:~n",[]),
+			print_bots(dict:to_list(Bots)),
+			From ! {dist, ok},
+			server_loop(Bots);
 		{From, {stop_all}} ->
 			dict:map(fun(Pid,Nick) -> Pid ! {bye} end, Bots),
 			From ! {dist, ok};
 		{From, Other} ->
 			io:format("cannot handle: ~p~n",[Other]),
+			From ! {dist, ok},
 			server_loop(Bots)
 	end.
 
@@ -115,7 +121,7 @@ server_loop(Bots) ->
 distribute_work([],[],_,_) -> ok;
 distribute_work(BotList, Pairs, Crypted, Len) ->
 	[CurPair|RestPairs] = Pairs,
-	[{Pid,Nick}|RestBots] = BotList,
+	[{Pid,_Nick}|RestBots] = BotList,
 	Pid ! {decrypt, CurPair, Crypted, Len},
 	distribute_work(RestBots,RestPairs,Crypted,Len).
 
@@ -127,6 +133,17 @@ distribute_work(BotList, Pairs, Crypted, Len) ->
 botnick(Bots,Pid) ->
 	{ok, Nick} = dict:find(Pid,Bots),
 	Nick.
+
+%%----------------------------------------------------------------------
+%% Function: print_bots/1
+%% Purpose: prints the list of bots (clients) currently enlisted
+%% Args: list of bots
+%%----------------------------------------------------------------------
+print_bots([]) -> ok;
+print_bots(Bots) ->
+	[{_Pid,Nick}|Rest] = Bots,
+	io:format("\t~p~n",[Nick]),
+	print_bots(Rest).
 
 %%----------------------------------------------------------------------
 %% Function: client_loop/0
