@@ -6,14 +6,13 @@ robust system should use a library like OTP instead.
 
 Instructions for distributed server and clients:
 
-1.  It's critical that the server is accessible by all clients using a fully qualified domain name or you
-will encounter badrpc errors.  This is a "feature" of Erlang.
+1.  It's critical that the server is accessible by all clients using a fully qualified domain name (IP addr won't work) or you will encounter badrpc errors.  This is a "feature" of Erlang.
 
 2.  Start the server session, setting a name and cookie (these can be anything you want)
 
 erl -name aserver -setcookie abcd
 
-3.  Start the clients using a unique name for each but the same cookie
+3.  Start the client(s) using a unique name for each but the same cookie
 
 erl -name iamaclient -setcookie abcd
 
@@ -27,7 +26,7 @@ If it says "pong", you're set, but if it says "pang", the connection failed.
 
 > dist:start().
 
-6.  Register each client with the server, using a nickname for the client:
+6.  In the client shell, register each with the server, using a nickname for the client:
 
 > dist:register_me(aserver@fullyqualified.com,"BillyBob").
 
@@ -37,6 +36,8 @@ If it says "pong", you're set, but if it says "pang", the connection failed.
 
 As always, the example is contrived.  The "word" is MD5 hashed, then the clients receive some range of
 characters to examine to find the match.  The results are reported back to the server.
+
+Total non-sequitur now.  For the BEST VIDEO EVER on Erlang, watch http://www.youtube.com/watch?v=uKfKtXYLG78
 
 2008-09-02:  Code for Intro to Erlang concurrency talk to be given at BarCamp Tampa unconference
 (http://barcamptampabay.com/) on Oct. 11, 2008 by Barry Ezell.  I am new to Erlang and this

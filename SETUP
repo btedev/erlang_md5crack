@@ -1,0 +1,35 @@
+If you'd like to participate in the Erlang distributed password cracking demo, you'll need Erlang installed on your system.  For OS X users, that means a lengthy compilation from source.  I've included instructions below for OS X, Windows, and Ubuntu:
+
+OS X:  Instructions for compiling from source are here: http://dysinger.net/2007/12/20/compiling-erlang-on-mac-os-x-leopard-from-scratch/ 
+or using Darwin Ports here: http://erlang.darwinports.com/
+
+Windows:  Install the exe here: http://www.erlang.org/download/otp_win32_R12B-5.exe
+Make sure to add the installed program's bin directory to your path in Environmental Variables.
+
+Ubuntu:  sudo apt-get install erlang-base
+
+Once installed, you can fire up the shell by typing "erl" in your terminal.  You can test it with an Erlang list comprehension like so (don't forget the periods at the end of each line!):
+
+> A = [10,0].
+
+> B = [X+79 || X <- A].
+
+> halt().
+
+It should give you a little greeting if it worked.  The code for the talk is available on GitHub at http://github.com/btedev/erlang_md5crack/tree/master .  If you download it now, make sure to git pull before the talk because it will likely be updated between now and then.  
+
+To run the downloaded code, you will need to compile the source files (ending in .erl) into executable files (ending in .beam).  It's really simple.
+
+1.  Fire up the shell by typing "erl" in the directory with the .erl files.
+
+2.  Compile each (ignore warnings):
+
+> c(pwd).
+
+> c(misc).
+
+> c(dist).
+
+You could now run any function in those modules by prefixing with the module name.  For instance:
+
+> misc:countdown(20).
