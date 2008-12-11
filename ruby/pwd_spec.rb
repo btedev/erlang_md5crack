@@ -6,7 +6,7 @@ describe Pwd do
     Pwd.encrypt("hi").should eql("49f68a5c8493ec2c0bf489821c21fc3b")
   end
 
-  it "should crack the MD% hash of a lowercase string" do
+  it "should crack the MD5 hash of a lowercase string" do
     Pwd.decrypt("49f68a5c8493ec2c0bf489821c21fc3b",2).should eql("hi")
   end
 
