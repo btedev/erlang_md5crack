@@ -24,7 +24,7 @@ rpc(Q) ->
 %% Function: start/0
 %% Purpose: register server_loop as "dist"
 %%----------------------------------------------------------------------
-start() -> register(dist, spawn(fun() -> server_loop(dict:new()) end)).
+start() -> register(dist, spawn(fun() -> server_loop(dict:new(),none) end)).
 
 %%----------------------------------------------------------------------
 %% Function: stop/0
@@ -75,42 +75,43 @@ parrot(Text) ->
 %% Purpose: main server loop
 %% Args: dictionary of bots (clients)
 %%----------------------------------------------------------------------
-server_loop(Bots) ->
+server_loop(Bots,StartTime) ->
 	receive
 		{From, {enlist, Nick}} ->
 			io:format("Welcome ~p~n", [Nick]),
 			Bots2 = Bots:append(From, Nick),
 			From ! {dist, ok},
-			server_loop(Bots2);
+			server_loop(Bots2,StartTime);
 		{From, {parrot, Text}} ->
 			dict:map(fun(Pid,Nick) -> Pid ! {parrot, Text, Nick} end, Bots),
 			From ! {dist, ok},
-			server_loop(Bots);
+			server_loop(Bots,StartTime);
 		{From, {decrypt, Crypted, Len}} ->
 			Pairs = pwd:partition_alphabet(Len, dict:size(Bots)),
 			distribute_work(dict:to_list(Bots), Pairs, Crypted, Len),
 			From ! {dist, ok},
-			server_loop(Bots);
+			server_loop(Bots,now());
 		{From, {found, Plain}} ->
-			io:format("~p decrypted password: ~p~n",[botnick(Bots,From),Plain]),
+			Elapsed = timer:now_diff(now(), StartTime) / 1000 / 1000,  %seconds
+			io:format("~p decrypted password ~p in ~p seconds~n",[botnick(Bots,From),Plain,Elapsed]),
 			From ! {dist, you_rock},
-			server_loop(Bots);
+			server_loop(Bots,StartTime);
 		{From, {notfound}} ->
 			io:format("~p failed to find the password: ~n",[botnick(Bots,From)]),
 			From ! {dist, thanks_for_playing},
-			server_loop(Bots);
+			server_loop(Bots,StartTime);
 		{From, {print_botlist}} ->
 			io:format("Current bots:~n",[]),
 			print_bots(dict:to_list(Bots)),
 			From ! {dist, ok},
-			server_loop(Bots);
+			server_loop(Bots,StartTime);
 		{From, {stop_all}} ->
-			dict:map(fun(Pid,Nick) -> Pid ! {bye} end, Bots),
+			dict:map(fun(Pid,_Nick) -> Pid ! {bye} end, Bots),
 			From ! {dist, ok};
 		{From, Other} ->
 			io:format("cannot handle: ~p~n",[Other]),
 			From ! {dist, ok},
-			server_loop(Bots)
+			server_loop(Bots,StartTime)
 	end.
 
 %%----------------------------------------------------------------------
