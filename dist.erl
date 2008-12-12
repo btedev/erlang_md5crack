@@ -28,7 +28,7 @@ start() -> register(dist, spawn(fun() -> server_loop(dict:new(),none) end)).
 
 %%----------------------------------------------------------------------
 %% Function: stop/0
-%% Purpose: stops all client processes and unregisters dist
+%% Purpose: stops all client processes and ends server_loop recursion
 %%----------------------------------------------------------------------
 stop() -> rpc({stop_all}).
 
@@ -95,7 +95,7 @@ server_loop(Bots,StartTime) ->
 			Elapsed = timer:now_diff(now(), StartTime) / 1000 / 1000,  %seconds
 			io:format("~p decrypted password ~p in ~p seconds~n",[botnick(Bots,From),Plain,Elapsed]),
 			From ! {dist, you_rock},
-			server_loop(Bots,StartTime);
+			server_loop(Bots,none);
 		{From, {notfound}} ->
 			io:format("~p failed to find the password: ~n",[botnick(Bots,From)]),
 			From ! {dist, thanks_for_playing},
