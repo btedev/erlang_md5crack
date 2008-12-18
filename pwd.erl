@@ -28,10 +28,7 @@ decrypt(Crypted, Len, Processes) ->
 	CharPartitions = partition_alphabet(Len, Processes),
 	Server = self(),	
 	StartTime = now(),
-	lists:foreach(fun({Min,Max}) -> 
-		spawn(fun() -> 
-			analyze(Server, Crypted, Min, Max) end) 
-		end, CharPartitions),
+	lists:foreach(fun({Min,Max}) -> spawn(pwd, analyze, [Server,Crypted,Min,Max]) end, CharPartitions),
 	loop(Processes, StartTime, notfound).
 
 %%----------------------------------------------------------------------
