@@ -22,6 +22,6 @@ class Pwd
 
       test.next! 
     end
-    test
+    found
   end  
 end
