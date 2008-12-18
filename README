@@ -10,7 +10,7 @@ Instructions for distributed server and clients:
 
 2.  Start the server session, setting a name and cookie (these can be anything you want)
 
-erl -name aserver -setcookie abcd
+erl -name anyname@fullyqualified.com -setcookie abcd
 
 3.  Start the client(s) using a unique name for each but the same cookie
 

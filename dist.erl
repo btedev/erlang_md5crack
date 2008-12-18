@@ -33,7 +33,7 @@ start() -> register(dist, spawn(fun() -> server_loop(dict:new(),none) end)).
 stop() -> rpc({stop_all}).
 
 % note: rpc:call below is a function on the rpc lib and has nothing to do with the homegrown rpc() above
-% rpc:call/2 allows a remote shell using the same password as the local shell to make rpc calls on local functions
+% rpc:call/4 allows a remote shell using the same password as the local shell to make rpc calls on local functions
 register_me(Server, Nick) ->
 	rpc:call(Server, dist, enlist, [Nick]).
 

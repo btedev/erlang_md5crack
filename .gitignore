@@ -1,5 +1,6 @@
 .DS_Store
 *.beam
+*.mov
 results
 results.txt
 presentation/Erlang.ppt

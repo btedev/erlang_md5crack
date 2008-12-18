@@ -14,3 +14,18 @@ countdown(N) ->
 	io:format("~p~n",[N]),
 	countdown(N-1).
 	
+loop() ->
+	receive
+		{double,N} ->
+			io:format("Double ~p if ~p~n",[N,N*2]),
+			loop();
+		{triple,N} ->
+			io:format("Triple ~p if ~p~n",[N,N*3]),
+			loop();
+		close ->
+			io:format("closing...~n",[]);
+		Other ->
+			io:format("Don't know how to ~p~n",[Other]),
+			loop()
+	end.
+
